@@ -76,8 +76,8 @@
     </dependencies>
 
     <build>
+        <finalName>social</finalName>
         <plugins>
-            <!-- we want JDK 1.6 source and binary compatiblility -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -86,9 +86,73 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
-            <!-- ... -->
-            <!-- we want sources to be processed by a specific 1.6 javac -->
-
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!--用于解决spring boot默认占位符：@...@变成${}-->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>utf-8</encoding>
+                    <useDefaultDelimiters>true</useDefaultDelimiters>
+                </configuration>
+            </plugin>
         </plugins>
+        <resources>
+            <!--使用Maven来对项目资源进行变量替换-->
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
+
+
+    <profiles>
+        <profile>
+            <id>local</id>
+            <properties>
+                <build.profile.id>local</build.profile.id>
+                <db.driver>com.mysql.jdbc.Driver</db.driver>
+                <jdbc.url>jdbc:mysql://118.244.212.178:5306/search?useUnicode=true&amp;characterEncoding=utf-8
+                </jdbc.url>
+                <jdbc.username>root</jdbc.username>
+                <jdbc.password>test@wode2017social</jdbc.password>
+                <logback.appender>CONSOLE</logback.appender>
+                <port>8002</port>
+
+            </properties>
+        </profile>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <profileName>dev</profileName>
+                <db.driver>com.mysql.jdbc.Driver</db.driver>
+                <jdbc.url>jdbc:mysql://118.244.212.178:5306/social?useUnicode=true&amp;characterEncoding=utf-8
+                </jdbc.url>
+                <jdbc.username>root</jdbc.username>
+                <jdbc.password>test@wode2017social</jdbc.password>
+                <logback.appender>FILE</logback.appender>
+                <port>8001</port>
+
+
+            </properties>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <profileName>prod</profileName>
+                <jdbc.url>jdbc:mysql://192.168.1.161:5306/social?useUnicode=true&amp;characterEncoding=utf-8</jdbc.url>
+                <jdbc.username>root</jdbc.username>
+                <jdbc.password>dev@wode2017social</jdbc.password>
+                <logback.appender>FILE</logback.appender>
+
+                <port>8001</port>
+
+            </properties>
+        </profile>
+    </profiles>
 </project>
