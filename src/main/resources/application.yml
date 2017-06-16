@@ -35,6 +35,12 @@ spring:
         maxOpenPreparedStatements: 20
         dbcp:
           default-auto-commit: false
-
+    data:
+        elasticsearch:
+          cluster-name: ${es.cluster-name}
+          cluster-nodes: ${es.cluster-nodes}
+          local: ${es-local}
+          repositories:
+          enabled: ${es.repositories.enabled}
 
 

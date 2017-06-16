@@ -1,5 +1,8 @@
 package com.stockemotion.search.model;
 
+import com.stockemotion.common.utils.JsonUtils;
+import com.stockemotion.search.dto.innner.SearchUserDTO;
+
 import java.util.Date;
 import javax.persistence.*;
 
@@ -18,6 +21,9 @@ public class SearchUser {
     private String cellphone;
 
     private String introduce;
+
+    @Column(name = "picture_url")
+    private String pictureUrl;
 
     @Column(name = "sys_create_time")
     private Date sysCreateTime;
@@ -96,6 +102,20 @@ public class SearchUser {
     }
 
     /**
+     * @return picture_url
+     */
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    /**
+     * @param pictureUrl
+     */
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl == null ? null : pictureUrl.trim();
+    }
+
+    /**
      * @return sys_create_time
      */
     public Date getSysCreateTime() {
@@ -121,5 +141,12 @@ public class SearchUser {
      */
     public void setSysUpdateTime(Date sysUpdateTime) {
         this.sysUpdateTime = sysUpdateTime;
+    }
+
+
+    public static SearchUser SearchUserDTO2SearchUser(SearchUserDTO socialUser) {
+        String jsonString = JsonUtils.TO_JSON(socialUser);
+        SearchUser searchUser = (SearchUser)JsonUtils.TO_OBJ(jsonString, SearchUser.class);
+        return  searchUser;
     }
 }

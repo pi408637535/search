@@ -15,6 +15,12 @@
         <version>1.5.1.RELEASE</version>
     </parent>
 
+    <properties>
+        <projectlombok.vserion>1.14.8</projectlombok.vserion>
+        <qcloud.version>2.1.0</qcloud.version>
+        <logback.version>1.1.7</logback.version>
+    </properties>
+
 
     <dependencies>
         <dependency>
@@ -54,6 +60,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>io.github.biezhi</groupId>
@@ -70,8 +80,23 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.38</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${projectlombok.vserion}</version>
+        </dependency>
 
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
 
+        <dependency>
+            <groupId>com.stockemotion</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
 
     </dependencies>
 
@@ -123,6 +148,12 @@
                 <jdbc.password>test@wode2017social</jdbc.password>
                 <logback.appender>CONSOLE</logback.appender>
                 <port>8002</port>
+
+                <social_url_checkNickName>118.244.212.178:8001/wd/forum/user/check/nickname</social_url_checkNickName>
+                <es.cluster-name>wshare_es</es.cluster-name>
+                <es.cluster-nodes>118.244.212.178:9300</es.cluster-nodes>
+                <es-local>false</es-local>
+                <es.repositories.enabled>true</es.repositories.enabled>
 
             </properties>
         </profile>
