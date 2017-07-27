@@ -24,12 +24,18 @@ public class UserController extends BaseController
     private UserRepository userRepository;
 
 
+
     @RequestMapping("/importAll")
     public ResponseBody importAll(){
         searchUserService.importAllUserToIndex();
         return getResponseBody("ok");
     }
 
+
+    @RequestMapping("/importAllNickname")
+    public ResponseBody importAllNickname(){
+        return getResponseBody(searchUserService.importForbiddenNickname());
+    }
 
     @RequestMapping("/deleteAll")
     public ResponseBody deleteAll(){

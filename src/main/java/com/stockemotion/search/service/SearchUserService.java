@@ -22,9 +22,9 @@ public interface SearchUserService {
      * @param searchUserDTO
      * @return
      */
-    @Deprecated
+  /*  @Deprecated
     String synchronizeUser(SearchUserDTO searchUserDTO); //用于更新用户
-
+*/
 
     //新用户生成
 
@@ -33,18 +33,17 @@ public interface SearchUserService {
      * @param searchUserDTO
      * @return
      */
-    @Deprecated
+  /*  @Deprecated
     String addUser(SearchUserDTO searchUserDTO); //用于更新用户
-
+*/
     String addUserOrUpdate(SearchUserDTO searchUserDTO); //用于更新用户
 
 
     //前端用于修改用户名
     boolean searchByNickName(String nickName); //用于更新用户
 
-
     MqUserDTO searchUserByNickName(String nickName); //用于更新用户
 
+    boolean importForbiddenNickname();
 
-    void testEs();
 }
