@@ -4,6 +4,7 @@ package com.stockemotion.search.monitor;
 
 import com.stockemotion.common.utils.JsonUtils;
 import com.stockemotion.search.controller.BaseController;
+import com.stockemotion.search.exception.NullParamException;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -90,7 +91,10 @@ public class ApiControllerAspect
         Object result = null;
         try {
             result = joinPoint.proceed();
-        }catch (Throwable npe){
+        } catch (NullParamException npe){
+            BaseController.getNullParamResponse();
+        }
+        catch (Throwable npe){
             log.error("exception :", npe);
             result = BaseController.getErrorServerResponse();
         }

@@ -97,11 +97,17 @@
             <artifactId>common</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
+            <version>1.4.3.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 
     <build>
-        <finalName>social</finalName>
+        <finalName>es-search</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -142,16 +148,16 @@
             <properties>
                 <build.profile.id>local</build.profile.id>
                 <db.driver>com.mysql.jdbc.Driver</db.driver>
-                <jdbc.url>jdbc:mysql://118.244.212.178:5306/search?useUnicode=true&amp;characterEncoding=utf-8
-                </jdbc.url>
+                <jdbc.url>jdbc:mysql://118.244.212.178:5306/search?useUnicode=true&amp;characterEncoding=utf-8</jdbc.url>
                 <jdbc.username>root</jdbc.username>
                 <jdbc.password>test@wode2017social</jdbc.password>
                 <logback.appender>CONSOLE</logback.appender>
                 <port>8002</port>
 
-                <social_url_checkNickName>118.244.212.178:8001/wd/forum/user/check/nickname</social_url_checkNickName>
+                <social_url_checkNickName>http://118.244.212.178:8001/wd/forum/user/check/nickname</social_url_checkNickName>
+
                 <es.cluster-name>wshare_es</es.cluster-name>
-                <es.cluster-nodes>118.244.212.178:9300</es.cluster-nodes>
+                <es.cluster-nodes>118.244.212.178:19300</es.cluster-nodes>
                 <es-local>false</es-local>
                 <es.repositories.enabled>true</es.repositories.enabled>
 
@@ -162,26 +168,40 @@
             <properties>
                 <profileName>dev</profileName>
                 <db.driver>com.mysql.jdbc.Driver</db.driver>
-                <jdbc.url>jdbc:mysql://118.244.212.178:5306/social?useUnicode=true&amp;characterEncoding=utf-8
-                </jdbc.url>
+                <jdbc.url>jdbc:mysql://118.244.212.178:5306/search?useUnicode=true&amp;characterEncoding=utf-8</jdbc.url>
                 <jdbc.username>root</jdbc.username>
                 <jdbc.password>test@wode2017social</jdbc.password>
                 <logback.appender>FILE</logback.appender>
-                <port>8001</port>
+                <port>8002</port>
+
+                <social_url_checkNickName>http://118.244.212.178:8001/wd/forum/user/check/nickname</social_url_checkNickName>
+
+                <es.cluster-name>wshare_es</es.cluster-name>
+                <es.cluster-nodes>192.168.1.125:9300</es.cluster-nodes>
+                <es-local>false</es-local>
+                <es.repositories.enabled>true</es.repositories.enabled>
 
 
             </properties>
         </profile>
         <profile>
-            <id>prod</id>
+            <id>final</id>
             <properties>
-                <profileName>prod</profileName>
-                <jdbc.url>jdbc:mysql://192.168.1.161:5306/social?useUnicode=true&amp;characterEncoding=utf-8</jdbc.url>
+                <profileName>final</profileName>
+                <db.driver>com.mysql.jdbc.Driver</db.driver>
+                <jdbc.url>jdbc:mysql://192.168.1.161:5306/search?useUnicode=true&amp;characterEncoding=utf-8</jdbc.url>
                 <jdbc.username>root</jdbc.username>
                 <jdbc.password>dev@wode2017social</jdbc.password>
                 <logback.appender>FILE</logback.appender>
+                <port>8002</port>
 
-                <port>8001</port>
+                <social_url_checkNickName>http://118.244.212.45:8001/wd/forum/user/check/nickname</social_url_checkNickName>
+
+                <es.cluster-name>wshare_es</es.cluster-name>
+                <es.cluster-nodes>118.244.212.178:9300</es.cluster-nodes>
+                <es-local>false</es-local>
+                <es.repositories.enabled>true</es.repositories.enabled>
+
 
             </properties>
         </profile>

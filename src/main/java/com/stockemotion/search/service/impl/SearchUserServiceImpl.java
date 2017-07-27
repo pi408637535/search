@@ -7,6 +7,7 @@ import com.stockemotion.common.utils.HttpClientUtil;
 import com.stockemotion.search.dao.SearchAutoIdDao;
 import com.stockemotion.search.dao.SearchUserDao;
 import com.stockemotion.search.dto.ContentDTO;
+import com.stockemotion.search.dto.MqUserDTO;
 import com.stockemotion.search.dto.innner.SearchUserDTO;
 import com.stockemotion.search.es.dao.UserRepository;
 import com.stockemotion.search.model.SearchAutoId;
@@ -42,7 +43,7 @@ public class SearchUserServiceImpl implements SearchUserService {
         List<SearchUser> listUser = searchUserDao.getListEntity(new SearchUser());
 
         List<SearchUserDTO> searchUserList = Lists.newArrayList();
-        for(SearchUser searchUser : listUser){
+        for (SearchUser searchUser : listUser) {
             searchUserList.add(SearchUserDTO.SocialUser2SearchUser(searchUser));
         }
         userRepository.save(searchUserList);
@@ -65,7 +66,7 @@ public class SearchUserServiceImpl implements SearchUserService {
         Page<SearchUserDTO> searchUsers = userRepository.search(builder, new PageRequest(page, rows));
 
         List<SearchUserDTO> searchUserDTOS = Lists.newArrayList();
-        for(SearchUserDTO searchUserDTO : searchUsers){
+        for (SearchUserDTO searchUserDTO : searchUsers) {
             searchUserDTOS.add(searchUserDTO);
         }
 
@@ -91,33 +92,48 @@ public class SearchUserServiceImpl implements SearchUserService {
 
         String nickName = searchUserDTO.getNickName();
 
+        SearchUser searchUserQuery = new SearchUser();
+        searchUserQuery.setUserId(searchUser.getUserId());
+        Optional<SearchUser> searchUserOptional = searchUserDao.getEntityOne(searchUserQuery);
 
-        if(StringUtils.isBlank(nickName)){
-            nickName = "匿名用户" + searchAutoIdDao.getByPrimary(1L).get().getAutoId();
-            SearchAutoId searchAutoId = searchAutoIdDao.getByPrimary(1L).get();
-            searchAutoId.setSysUpdateTime(DateUtils.getCurrentTimestamp());
-            searchAutoId.setAutoId(searchAutoId.getAutoId() + 1);
-            searchAutoIdDao.updateByPrimaryId(searchAutoId);
-        }else {
-            Map<String, String> params = Maps.newHashMap();
-            nickName = HttpClientUtil.doGet(SOCIAL_CHECK_NICKNAME, params, new HashMap<>());
+
+        if (!searchUserOptional.get().getNickName().equals(searchUserDTO.getNickName())) {
+            if (StringUtils.isBlank(nickName) || this.searchByNickName(nickName)) {
+                nickName = "匿名用户" + searchAutoIdDao.getByPrimary(1L).get().getAutoId();
+                SearchAutoId searchAutoId = searchAutoIdDao.getByPrimary(1L).get();
+                searchAutoId.setSysUpdateTime(DateUtils.getCurrentTimestamp());
+                searchAutoId.setAutoId(searchAutoId.getAutoId() + 1);
+                searchAutoIdDao.updateByPrimaryId(searchAutoId);
+                return nickName;
+            } else {
+                Map<String, String> params = Maps.newHashMap();
+                params.put("nickName", nickName);
+               String nickNameNew = HttpClientUtil.doGet(SOCIAL_CHECK_NICKNAME, params, new HashMap<>());
+                if(!StringUtils.isBlank(nickNameNew)){
+                    nickName = nickNameNew;
+                }
+            }
+
         }
+
 
         searchUser.setNickName(nickName);
         searchUserDTO.setNickName(nickName);
 
         Date dateNow = DateUtils.getCurrentTimestamp();
-        Optional<SearchUser> searchUserOptional = searchUserDao.getEntityOne(searchUser);
-        if(searchUserOptional.isPresent()){
+        if (searchUserOptional.isPresent()) {
+            searchUserOptional.get().setNickName(nickName);
             searchUserOptional.get().setSysUpdateTime(dateNow);
             searchUserDao.updateByPrimaryId(searchUserOptional.get());
-        }else {
+        } else {
             searchUser.setSysUpdateTime(dateNow);
             searchUser.setSysCreateTime(dateNow);
             searchUserDao.insert(searchUser);
         }
         userRepository.index(searchUserDTO);
+
         return nickName;
+
     }
 
 
@@ -125,15 +141,22 @@ public class SearchUserServiceImpl implements SearchUserService {
     public String addUser(SearchUserDTO searchUserDTO) {
 
         String nickName = searchUserDTO.getNickName();
-        if(StringUtils.isBlank(nickName)){
+        if (StringUtils.isBlank(nickName) || this.searchByNickName(nickName)) {
             nickName = "匿名用户" + searchAutoIdDao.getByPrimary(1L).get().getAutoId();
             SearchAutoId searchAutoId = searchAutoIdDao.getByPrimary(1L).get();
             searchAutoId.setSysUpdateTime(DateUtils.getCurrentTimestamp());
             searchAutoId.setAutoId(searchAutoId.getAutoId() + 1);
             searchAutoIdDao.updateByPrimaryId(searchAutoId);
-        }else {
+            //防止二次调用
+            return nickName;
+        } else {
             Map<String, String> params = Maps.newHashMap();
-            nickName = HttpClientUtil.doGet(SOCIAL_CHECK_NICKNAME, params, new HashMap<>());
+            params.put("nickName", nickName);
+            String nickNameNew = HttpClientUtil.doGet(SOCIAL_CHECK_NICKNAME, params, new HashMap<>());
+
+            if(!StringUtils.isBlank(nickNameNew)){
+                nickName = nickNameNew;
+            }
         }
 
         SearchUser searchUser = SearchUser.SearchUserDTO2SearchUser(searchUserDTO);
@@ -149,15 +172,92 @@ public class SearchUserServiceImpl implements SearchUserService {
     }
 
     @Override
+    public String addUserOrUpdate(SearchUserDTO searchUserDTO) {
+        String nickName = searchUserDTO.getNickName();
+
+        SearchUser searchUserQuery = new SearchUser();
+        searchUserQuery.setUserId(searchUserDTO.getUserId());
+        Optional<SearchUser> searchUserOptional = searchUserDao.getEntityOne(searchUserQuery);
+        if(searchUserOptional.isPresent()){ //exist user
+            if(!searchUserOptional.get().getNickName().equals(nickName)){ //修改用户名
+                Map<String, String> params = Maps.newHashMap();
+                params.put("nickName", nickName);
+                String nickNameNew = HttpClientUtil.doGet(SOCIAL_CHECK_NICKNAME, params, new HashMap<>());
+                if(!StringUtils.isBlank(nickNameNew)){
+                    if(nickNameNew != nickNameNew)
+                        return nickNameNew;
+                }
+                if(this.searchByNickName(nickName)){
+                    nickName = "匿名用户" + searchAutoIdDao.getByPrimary(1L).get().getAutoId();
+                    SearchAutoId searchAutoId = searchAutoIdDao.getByPrimary(1L).get();
+                    searchAutoId.setSysUpdateTime(DateUtils.getCurrentTimestamp());
+                    searchAutoId.setAutoId(searchAutoId.getAutoId() + 1);
+                    searchAutoIdDao.updateByPrimaryId(searchAutoId);
+                    return nickName;
+                }
+                searchUserOptional.get().setNickName(nickName);
+                searchUserOptional.get().setIntroduce(searchUserDTO.getIntroduce());
+                searchUserOptional.get().setCellphone(searchUserDTO.getCellphone());
+                searchUserOptional.get().setPictureUrl(searchUserDTO.getPictureUrl());
+                Date dateNow = DateUtils.getCurrentTimestamp();
+                searchUserOptional.get().setSysUpdateTime(dateNow);
+
+                searchUserDao.updateByPrimaryId(searchUserOptional.get());
+                userRepository.index(searchUserDTO);
+            }
+
+        }else{ //new user
+            if (StringUtils.isBlank(nickName) || this.searchByNickName(nickName)) {
+                nickName = "匿名用户" + searchAutoIdDao.getByPrimary(1L).get().getAutoId();
+                SearchAutoId searchAutoId = searchAutoIdDao.getByPrimary(1L).get();
+                searchAutoId.setSysUpdateTime(DateUtils.getCurrentTimestamp());
+                searchAutoId.setAutoId(searchAutoId.getAutoId() + 1);
+                searchAutoIdDao.updateByPrimaryId(searchAutoId);
+            }
+            SearchUser searchUser = SearchUser.SearchUserDTO2SearchUser(searchUserDTO);
+            searchUser.setNickName(nickName);
+            searchUserDTO.setNickName(nickName);
+
+            Date dateNow = DateUtils.getCurrentTimestamp();
+            searchUser.setSysUpdateTime(dateNow);
+            searchUser.setSysCreateTime(dateNow);
+            searchUserDao.insert(searchUser);
+            userRepository.save(searchUserDTO);
+        }
+
+        return nickName;
+    }
+
+    @Override
     public boolean searchByNickName(String nickName) {
+        QueryBuilder builder = null;
+        builder = QueryBuilders.termQuery("nickName", nickName);
+        Iterable<SearchUserDTO> searchUsers = userRepository.search(builder, new PageRequest(0, 1));
+        Iterator<SearchUserDTO> iterator = searchUsers.iterator();
+        if (iterator.hasNext()) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public MqUserDTO searchUserByNickName(String nickName) {
         QueryBuilder builder = null;
         builder = QueryBuilders.termQuery("nickName", nickName);
         Iterable<SearchUserDTO> searchUsers = userRepository.search(builder, new PageRequest(0,1));
         Iterator<SearchUserDTO> iterator =  searchUsers.iterator();
         if (iterator.hasNext()){
-            return true;
+            MqUserDTO mqUserDTO = MqUserDTO.SearchUser2MqUserDTO(iterator.next());
+            return mqUserDTO;
         }
-        return false;
+        return null;
+    }
+
+    @Override
+    public void testEs() {
+        QueryBuilder builder = null;
+        Iterable<SearchUserDTO> searchUsers = userRepository.search(builder, new PageRequest(0,1));
+        System.out.println(searchUsers);
     }
 
 

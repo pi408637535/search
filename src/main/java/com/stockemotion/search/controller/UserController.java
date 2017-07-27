@@ -6,6 +6,7 @@ import com.stockemotion.search.dto.ContentDTO;
 import com.stockemotion.search.dto.innner.SearchUserDTO;
 import com.stockemotion.search.es.dao.UserRepository;
 import com.stockemotion.search.service.SearchUserService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -60,8 +61,11 @@ public class UserController extends BaseController
 
 
 
-    @RequestMapping( value = "/addUser", method = RequestMethod.POST)
+    /*@RequestMapping( value = "/addUser", method = RequestMethod.POST)
     public ResponseBody addUser(@RequestBody SearchUserDTO searchUserDTO){
+        if(StringUtils.isEmpty( searchUserDTO.getPictureUrl())){
+            throw  new NullPointerException();
+        }
         return getResponseBody(searchUserService.addUser(searchUserDTO)) ;
     }
 
@@ -69,8 +73,18 @@ public class UserController extends BaseController
     @RequestMapping( value = "/updateUser", method = RequestMethod.POST)
     public ResponseBody updateUser(@RequestBody SearchUserDTO searchUserDTO){
         return getResponseBody(searchUserService.synchronizeUser(searchUserDTO)) ;
+    }*/
+
+    @RequestMapping( value = "/createOrUpdateUser", method = RequestMethod.POST)
+    public ResponseBody updateUser(@RequestBody SearchUserDTO searchUserDTO){
+        return getResponseBody(searchUserService.addUserOrUpdate(searchUserDTO)) ;
     }
 
+    //MQ消息队列使用
+    @RequestMapping("/queryUserByNickName")
+    public ResponseBody queryUserByNickName(String nickName){
+        return getResponseBody(searchUserService.searchUserByNickName(nickName));
+    }
 
 
 
