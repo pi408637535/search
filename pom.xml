@@ -167,7 +167,7 @@
                 <social_url_checkNickName>http://118.244.212.178:8001/wd/forum/user/check/nickname</social_url_checkNickName>
 
                 <es.cluster-name>wshare_es</es.cluster-name>
-                <es.cluster-nodes>118.244.212.185:19300</es.cluster-nodes>
+                <es.cluster-nodes>118.244.212.178:9300</es.cluster-nodes>
                 <es-local>false</es-local>
                 <es.repositories.enabled>true</es.repositories.enabled>
 
@@ -187,7 +187,7 @@
                 <social_url_checkNickName>http://118.244.212.178:8001/wd/forum/user/check/nickname</social_url_checkNickName>
 
                 <es.cluster-name>wshare_es</es.cluster-name>
-                <es.cluster-nodes>118.244.212.185:19300</es.cluster-nodes>
+                <es.cluster-nodes>118.244.212.178:9300</es.cluster-nodes>
                 <es-local>false</es-local>
                 <es.repositories.enabled>true</es.repositories.enabled>
 
@@ -208,7 +208,7 @@
                 <social_url_checkNickName>http://118.244.212.45:8001/wd/forum/user/check/nickname</social_url_checkNickName>
 
                 <es.cluster-name>wshare_es</es.cluster-name>
-                <es.cluster-nodes>118.244.212.178:9300</es.cluster-nodes>
+                <es.cluster-nodes>192.168.1.161:19300</es.cluster-nodes>
                 <es-local>false</es-local>
                 <es.repositories.enabled>true</es.repositories.enabled>
 

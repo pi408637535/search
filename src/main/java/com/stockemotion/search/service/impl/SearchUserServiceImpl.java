@@ -3,7 +3,7 @@ package com.stockemotion.search.service.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.stockemotion.common.utils.DateUtils;
-import com.stockemotion.common.utils.HttpClientUtil;
+import com.stockemotion.common.utils.JsonUtils;
 import com.stockemotion.search.SearchApplication;
 import com.stockemotion.search.dao.SearchAutoIdDao;
 import com.stockemotion.search.dao.SearchUserDao;
@@ -18,6 +18,7 @@ import com.stockemotion.search.model.SearchAdminUser;
 import com.stockemotion.search.model.SearchAutoId;
 import com.stockemotion.search.model.SearchUser;
 import com.stockemotion.search.service.SearchUserService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -35,6 +36,7 @@ import java.util.*;
 /**
  * Created by pigaunghua on 2016/12/6.
  */
+@Slf4j
 @Service
 public class SearchUserServiceImpl implements SearchUserService {
 
@@ -201,6 +203,18 @@ public class SearchUserServiceImpl implements SearchUserService {
                 if(forbiddenNicknameDTOIterator.hasNext())
                     checkNickName = false; // 不合格
 
+
+                if(!checkNickName) {
+                    QueryBuilder builder = null;
+                    builder = QueryBuilders.termQuery("nickName", nickName);
+                    Iterable<SearchUserDTO> searchUsers = userRepository.search(builder, new PageRequest(0, 1));
+                    Iterator<SearchUserDTO> iterator = searchUsers.iterator();
+                    if (iterator.hasNext()) {
+                        checkNickName = true;
+                    }
+                }
+
+                //校验 权限用户
                 List<SearchAdminUser> searchAdminUsers = searchAdminUserMapper.selectAll();
                 for(SearchAdminUser searchAdminUser: searchAdminUsers){
                     if(searchAdminUser.getUserId().equals(searchUserOptional.get().getUserId()))
@@ -222,17 +236,19 @@ public class SearchUserServiceImpl implements SearchUserService {
                     searchAutoIdDao.updateByPrimaryId(searchAutoId);
                     return nickName;
                 }
-                searchUserOptional.get().setNickName(nickName);
-                searchUserOptional.get().setIntroduce(searchUserDTO.getIntroduce());
-                searchUserOptional.get().setCellphone(searchUserDTO.getCellphone());
-                searchUserOptional.get().setPictureUrl(searchUserDTO.getPictureUrl());
-                Date dateNow = DateUtils.getCurrentTimestamp();
-                searchUserOptional.get().setSysUpdateTime(dateNow);
-
-                searchUserDao.updateByPrimaryId(searchUserOptional.get());
-                userRepository.delete(searchUserOptional.get().getId());
-                userRepository.index(searchUserDTO);
             }
+            searchUserOptional.get().setNickName(nickName);
+            searchUserOptional.get().setIntroduce(searchUserDTO.getIntroduce());
+            searchUserOptional.get().setCellphone(searchUserDTO.getCellphone());
+            searchUserOptional.get().setPictureUrl(searchUserDTO.getPictureUrl());
+            Date dateNow = DateUtils.getCurrentTimestamp();
+            searchUserOptional.get().setSysUpdateTime(dateNow);
+
+           // log.info("update=" + JsonUtils.TO_JSON(searchUserOptional.get()));
+
+            searchUserDao.updateByPrimaryId(searchUserOptional.get());
+            userRepository.delete(searchUserOptional.get().getId());
+            userRepository.index(searchUserDTO);
 
         }else{ //new user
             if (StringUtils.isBlank(nickName) || this.searchByNickName(nickName)) {

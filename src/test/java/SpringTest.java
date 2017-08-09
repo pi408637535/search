@@ -30,8 +30,8 @@ public class SpringTest {
         userNicknameDTO.setNickName("天使");
         nicknameRepository.save(userNicknameDTO);*/
 
-        QueryBuilder queryBuilder = new SimpleQueryStringBuilder("小沃机器人");
+        /*QueryBuilder queryBuilder = new SimpleQueryStringBuilder("小沃机器人");
         Iterable<ForbiddenNicknameDTO> forbiddenNicknameDTOS = forbiddenNicknameRepository.search(queryBuilder);
-        System.out.println(forbiddenNicknameDTOS);
+        System.out.println(forbiddenNicknameDTOS);*/
     }
 }

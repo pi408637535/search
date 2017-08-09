@@ -2,6 +2,9 @@ package com.stockemotion.search.model;
 
 import com.stockemotion.common.utils.JsonUtils;
 import com.stockemotion.search.dto.innner.SearchUserDTO;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldIndex;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.Date;
 import javax.persistence.*;
@@ -16,10 +19,13 @@ public class SearchUser {
     private Long userId;
 
     @Column(name = "nick_name")
+    @Field(searchAnalyzer="ik", analyzer="ik", store=true, index = FieldIndex.not_analyzed, type= FieldType.String)
     private String nickName;
 
+    @Field(searchAnalyzer="ik", analyzer="ik", store=true, index = FieldIndex.not_analyzed, type= FieldType.String)
     private String cellphone;
 
+    @Field(searchAnalyzer="ik", analyzer="ik" ,type= FieldType.String)
     private String introduce;
 
     @Column(name = "picture_url")
