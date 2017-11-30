@@ -26,7 +26,7 @@ public class SearchUserDTO {
 
     private String pictureUrl;
 
-    @Field(searchAnalyzer="ik", analyzer="ik", store=true, index = FieldIndex.not_analyzed, type= FieldType.String)
+    @Field(searchAnalyzer="analyzer", analyzer="analyzer", index = FieldIndex.not_analyzed, type= FieldType.String)
     private String cellphone;
 
     @Field(searchAnalyzer="ik", analyzer="ik" ,type= FieldType.String)

@@ -3,6 +3,7 @@ package com.stockemotion.search.service.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.stockemotion.common.utils.DateUtils;
+import com.stockemotion.common.utils.HttpClientUtil;
 import com.stockemotion.common.utils.JsonUtils;
 import com.stockemotion.search.SearchApplication;
 import com.stockemotion.search.dao.SearchAutoIdDao;
@@ -17,9 +18,11 @@ import com.stockemotion.search.mapper.SearchAdminUserMapper;
 import com.stockemotion.search.model.SearchAdminUser;
 import com.stockemotion.search.model.SearchAutoId;
 import com.stockemotion.search.model.SearchUser;
+import com.stockemotion.search.service.ForbidWordService;
 import com.stockemotion.search.service.SearchUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.index.query.FuzzyQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.SimpleQueryStringBuilder;
@@ -32,6 +35,8 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+
+import static com.stockemotion.search.utils.SearchConstant.SOCIAL_CHECK_NICKNAME;
 
 /**
  * Created by pigaunghua on 2016/12/6.
@@ -50,6 +55,8 @@ public class SearchUserServiceImpl implements SearchUserService {
     private ForbiddenNicknameRepository forbiddenNicknameRepository;
     @Resource
     private SearchAdminUserMapper searchAdminUserMapper;
+    @Resource
+    ForbidWordService forbidWordService;
 
 
     @Override
@@ -195,13 +202,17 @@ public class SearchUserServiceImpl implements SearchUserService {
         if(searchUserOptional.isPresent()){ //exist user
             if(!searchUserOptional.get().getNickName().equals(nickName)){ //修改用户名
 
-                QueryBuilder queryBuilder = new SimpleQueryStringBuilder(nickName);
+                QueryBuilder queryBuilder = new FuzzyQueryBuilder("nickName",nickName).boost(0.1f);
+
                 Iterable<ForbiddenNicknameDTO> forbiddenNicknameDTOS = forbiddenNicknameRepository.search(queryBuilder);
                 Iterator<ForbiddenNicknameDTO> forbiddenNicknameDTOIterator = forbiddenNicknameDTOS.iterator();
 
                 boolean checkNickName = true; //默认名字可用
                 if(forbiddenNicknameDTOIterator.hasNext())
                     checkNickName = false; // 不合格
+
+               if(nickName.contains("沃"))
+                   checkNickName = false; // 不合格
 
 
                 if(!checkNickName) {
@@ -210,9 +221,10 @@ public class SearchUserServiceImpl implements SearchUserService {
                     Iterable<SearchUserDTO> searchUsers = userRepository.search(builder, new PageRequest(0, 1));
                     Iterator<SearchUserDTO> iterator = searchUsers.iterator();
                     if (iterator.hasNext()) {
-                        checkNickName = true;
+                        checkNickName = false;
                     }
                 }
+
 
                 //校验 权限用户
                 List<SearchAdminUser> searchAdminUsers = searchAdminUserMapper.selectAll();
@@ -248,16 +260,18 @@ public class SearchUserServiceImpl implements SearchUserService {
 
             searchUserDao.updateByPrimaryId(searchUserOptional.get());
             userRepository.delete(searchUserOptional.get().getId());
-            userRepository.index(searchUserDTO);
+            SearchUserDTO searchUserDTOExist = userRepository.save(searchUserDTO);
+            log.info("searchUserDTOExist  exist" + JsonUtils.TO_JSON(searchUserDTOExist));
 
         }else{ //new user
-            if (StringUtils.isBlank(nickName) || this.searchByNickName(nickName)) {
+            if (StringUtils.isBlank(nickName) || this.searchByNickName(nickName) || !nickName.equals(forbidWordService.fillForbidWord(nickName)) ) {
                 nickName = "匿名用户" + searchAutoIdDao.getByPrimary(1L).get().getAutoId();
                 SearchAutoId searchAutoId = searchAutoIdDao.getByPrimary(1L).get();
                 searchAutoId.setSysUpdateTime(DateUtils.getCurrentTimestamp());
                 searchAutoId.setAutoId(searchAutoId.getAutoId() + 1);
                 searchAutoIdDao.updateByPrimaryId(searchAutoId);
             }
+
             SearchUser searchUser = SearchUser.SearchUserDTO2SearchUser(searchUserDTO);
             searchUser.setNickName(nickName);
             searchUserDTO.setNickName(nickName);
@@ -266,7 +280,8 @@ public class SearchUserServiceImpl implements SearchUserService {
             searchUser.setSysUpdateTime(dateNow);
             searchUser.setSysCreateTime(dateNow);
             searchUserDao.insert(searchUser);
-            userRepository.save(searchUserDTO);
+            SearchUserDTO searchUserDTOExist = userRepository.save(searchUserDTO);
+            log.info("searchUserDTOExist  now" + JsonUtils.TO_JSON(searchUserDTOExist));
         }
 
         return nickName;
